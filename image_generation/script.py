@@ -6,10 +6,6 @@ import hashlib
 from fontTools.ttLib import TTFont
 from fontTools.unicode import Unicode
 
-crypto_width = 500
-crypto_height = 500
-crypto_size = (crypto_width, crypto_height)
-
 # ideas: random bg/font color, with no regard for contrast
 # how to include cyrilir/greek letters?
 
@@ -33,10 +29,10 @@ def get_all_chars_from_ttf(font_file, is_valid):
     return filtered
 
 
-def render_chars_from_font(crypto_font_file, dest_path, is_valid, crypto_size=16):
+def render_chars_from_font(crypto_coll_name, crypto_font_file, dest_path, is_valid, crypto_size=16):
     crypto_hash = int(hashlib.sha1(crypto_font_file.encode("utf-8")).hexdigest(), 16) % (10 ** 14)
 
-    print(crypto_hash)
+    # print(crypto_hash)
     random.seed(crypto_hash)
 
     crypto_font = ImageFont.truetype(crypto_font_file, crypto_size)
@@ -47,9 +43,17 @@ def render_chars_from_font(crypto_font_file, dest_path, is_valid, crypto_size=16
         # [(unicode_point, character, unicode_name?)]
         crypto_file_name = char[2].replace(' ', '_').lower()
         render_character(char[1], crypto_font, dest_path, crypto_file_name)
+    
+    render_opensea_images(crypto_coll_name, crypto_font, dest_path)
 
 
-def render_character(crypto_char, crypto_font, dest_path, crypto_file_name):
+def render_opensea_images(crypto_coll_name, crypto_font, dest_path):
+    render_character(crypto_coll_name, crypto_font, dest_path, '_logo', crypto_w=350, crypto_h=350)
+    render_character(crypto_coll_name, crypto_font, dest_path, '_featured', crypto_w=600, crypto_h=400)
+    render_character(crypto_coll_name, crypto_font, dest_path, '_banner', crypto_w=1400, crypto_h=400)
+
+
+def render_character(crypto_char, crypto_font, dest_path, crypto_file_name, crypto_w=500, crypto_h=500):
     """
     thank you https://stackoverflow.com/a/1970930
     """
@@ -57,12 +61,12 @@ def render_character(crypto_char, crypto_font, dest_path, crypto_file_name):
     crypto_bg_color = (random.randint(0, 255), random.randint(0, 255), random.randint(0, 255))
     crypto_fg_color = (random.randint(0, 255), random.randint(0, 255), random.randint(0, 255))
 
-    crypto_img = Image.new('RGB', crypto_size, color = crypto_bg_color)
+    crypto_img = Image.new('RGB', (crypto_w, crypto_h), color = crypto_bg_color)
     crypto_draw = ImageDraw.Draw(crypto_img)
 
     crypto_text_size_w, crypto_text_size_h = crypto_draw.textsize(crypto_char, font=crypto_font)
-    crypto_center_x = (crypto_width - crypto_text_size_w) / 2
-    crypto_center_y = (crypto_height - crypto_text_size_h) / 2
+    crypto_center_x = (crypto_w - crypto_text_size_w) / 2
+    crypto_center_y = (crypto_h - crypto_text_size_h) / 2
     crypto_draw.text((crypto_center_x, crypto_center_y), crypto_char, fill=crypto_fg_color, font=crypto_font)
     
     crypto_img.save(f'{dest_path}/{crypto_file_name}.png')
@@ -78,8 +82,9 @@ def create_unicode_validation(is_valid):
 
 
 render_chars_from_font(
+    "LTRS",
     "/Users/yehoshuaoliveira/Workspace/Ioxua/nft/image_generation/fonts/Roboto/Roboto-Regular.ttf",
-    "/Users/yehoshuaoliveira/Workspace/Ioxua/nft/results/LETTERS",
+    "/Users/yehoshuaoliveira/Workspace/Ioxua/nft/image_gen_results/LETTERS",
     create_unicode_validation(lambda unicode_point: unicode_point >= 65 and unicode_point <= 90),
     220,
 )
